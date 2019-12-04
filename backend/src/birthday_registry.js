@@ -1,6 +1,5 @@
 
 const { Client } = require('pg')
-//const connstr = process.env.PG_CONNSTR || "postgres://postgres@localhost:6432/postgres"
 
 async function exec_query(query, params){
     const client = new Client();
