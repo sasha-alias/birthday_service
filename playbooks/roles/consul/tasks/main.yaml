@@ -1,0 +1,66 @@
+
+
+- name: update apt cache
+  apt: update_cache=yes
+
+- name: install required packages
+  apt:
+      name:
+        - unzip
+
+- name: check for consul_archive
+  stat:
+      path: /bin/consul_1.6.2_linux_amd64.zip
+  register: file_stat
+
+- name: set fact consul_archive
+  set_fact:
+      consul_archive: "{{ file_stat.stat.exists }}"
+
+- name: check for file consul binary
+  stat:
+      path: /bin/consul
+  register: file_stat
+
+- name: set fact consul binary
+  set_fact:
+      consul_binary: "{{ file_stat.stat.exists }}"
+
+- name: download consul if not present
+  get_url:
+      url: https://releases.hashicorp.com/consul/1.6.2/consul_1.6.2_linux_amd64.zip
+      dest: /bin/consul_1.6.2_linux_amd64.zip
+  when: not (consul_binary or consul_archive)
+
+- name: unarchive consul if no binary
+  unarchive:
+      src: /bin/consul_1.6.2_linux_amd64.zip
+      remote_src: yes
+      dest: /bin/
+  when: not consul_binary
+
+- name: ensure consul data dir
+  file:
+      path: /var/lib/consul
+      state: directory
+
+- name: ensure consul config dir
+  file:
+      path: /etc/consul
+      state: directory
+
+- name: ensure server config
+  template:
+      src: server.conf.jinja2
+      dest: /etc/consul/config.json
+
+- name: systemd service config
+  template:
+      src: consul.service.jinja2
+      dest: /etc/systemd/system/consul.service
+
+- name: start consul
+  service:
+      name: consul
+      state: restarted
+

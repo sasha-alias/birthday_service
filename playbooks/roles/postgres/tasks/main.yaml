@@ -25,6 +25,7 @@
         - postgresql-contrib-11
         - postgresql-server-dev-11
         - postgresql-11-repmgr
+        - python-psycopg2
         - python3-psycopg2
       state: present
       update_cache: yes
@@ -54,3 +55,15 @@
       src: repmgr.conf.jinja2
       dest: /etc/repmgr.conf
 
+- name: write consul service file
+  template:
+      src: postgres_consul.json.jinja2
+      dest: /etc/postgres_consul.json
+
+- name: write promote_command.sh
+  template:
+      src: promote_command.sh.jinja2
+      dest: /usr/local/bin/promote_command.sh
+      mode: "u+x"
+      owner: postgres
+      group: postgres

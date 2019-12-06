@@ -1,0 +1,3 @@
+#/bin/sh
+repmgr standby promote -f /etc/repmgr.conf &&
+curl --request PUT --data @/etc/postgres_consul.json localhost:8500/v1/catalog/register

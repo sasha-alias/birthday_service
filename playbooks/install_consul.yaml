@@ -1,0 +1,5 @@
+
+- hosts: consul_nodes
+  become: yes
+  roles:
+      - role: consul
