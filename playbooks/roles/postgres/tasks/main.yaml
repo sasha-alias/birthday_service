@@ -1,0 +1,56 @@
+
+- name: set hostname
+  hostname:
+      name: "{{ inventory_hostname }}"
+
+- name: install PGDG apt repository signing key
+  apt_key:
+    id: ACCC4CF8
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Install PGDG apt repositories
+  apt_repository:
+    repo: deb https://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main
+    state: present
+    update_cache: no
+
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: Install required packages
+  apt:
+      name:
+        - postgresql-11
+        - postgresql-contrib-11
+        - postgresql-server-dev-11
+        - postgresql-11-repmgr
+        - python3-psycopg2
+      state: present
+      update_cache: yes
+
+- name: write /etc/hosts
+  template:
+      src: hosts.jinja2
+      dest: /etc/hosts
+
+- name: write pg_hba.conf
+  template:
+      src: pg_hba.conf.jinja2
+      dest: /etc/postgresql/11/main/pg_hba.conf
+
+- name: write postgresql.conf
+  template:
+      src: postgresql.conf.jinja2
+      dest: /etc/postgresql/11/main/postgresql.conf
+
+- name: restart postgres
+  service:
+      name: postgresql
+      state: restarted
+
+- name: write repmgr.conf
+  template:
+      src: repmgr.conf.jinja2
+      dest: /etc/repmgr.conf
+

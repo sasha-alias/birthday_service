@@ -1,0 +1,6 @@
+
+127.0.0.1	localhost
+
+{% for h in groups['db_nodes'] %}
+{{ hostvars[h].ansible_host + ' ' + hostvars[h].inventory_hostname }}
+{% endfor %}

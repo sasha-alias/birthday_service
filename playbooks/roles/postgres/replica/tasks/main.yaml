@@ -1,0 +1,32 @@
+
+- name: stop postgresql service
+  service:
+      name: postgresql
+      state: stopped
+  when: not postgres_initialised
+
+- name: cleanup data dir
+  shell: /bin/rm -rf /var/lib/postgresql/11/main/*
+  when: not postgres_initialised
+
+- name: clone replica
+  command: repmgr -h {{ primary_node }} -U repmgr -d repmgr -f /etc/repmgr.conf standby clone --force
+  become_user: postgres
+  when: not postgres_initialised
+
+- name: start postgresql service
+  service:
+      name: postgresql
+      state: started
+  when: not postgres_initialised
+
+- name: register replica
+  command: repmgr -f /etc/repmgr.conf standby register
+  become_user: postgres
+  when: not postgres_initialised
+
+- name: ensure file /etc/postgres_initialised
+  file:
+      path: /etc/postgres_initialised
+      state: touch
+  when: not postgres_initialised

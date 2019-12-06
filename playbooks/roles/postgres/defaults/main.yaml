@@ -1,0 +1,1 @@
+postgresql_conf_listen_addresses: "'*'"

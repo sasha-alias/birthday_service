@@ -1,0 +1,23 @@
+
+all:
+
+    hosts:
+        nodeA:
+            ansible_host: 192.168.111.11
+            ansible_user: vagrant
+            ansible_ssh_private_key_file: ssh/id_rsa
+        nodeB:
+            ansible_host: 192.168.111.12
+            ansible_user: vagrant
+            ansible_ssh_private_key_file: ssh/id_rsa
+
+    vars:
+        primary_node: nodeA
+
+    children:
+        db_nodes:
+            hosts:
+                nodeA:
+                    repmgr_node_idx: 1
+                nodeB:
+                    repmgr_node_idx: 2

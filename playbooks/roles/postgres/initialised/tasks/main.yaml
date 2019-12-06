@@ -1,0 +1,10 @@
+
+- name: check for file /etc/postgres_initialised
+  stat:
+      path: /etc/postgres_initialised
+  register: file_stat
+
+- name: set fact postgres_initialised
+  set_fact:
+      postgres_initialised: "{{ file_stat.stat.exists }}"
+

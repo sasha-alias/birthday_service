@@ -1,0 +1,14 @@
+
+- hosts: db_nodes
+  become: yes
+  roles:
+      - role: postgres
+      
+      - role: postgres/initialised
+
+      - role: postgres/primary
+        when: inventory_hostname == primary_node
+
+      - role: postgres/replica
+        when: inventory_hostname != primary_node
+
