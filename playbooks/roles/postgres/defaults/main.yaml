@@ -1,1 +1,3 @@
 postgresql_conf_listen_addresses: "'*'"
+postgresql_conf_synchronous_commit: "remote_write"
+postgresql_conf_shared_preload_libraries: "repmgr"

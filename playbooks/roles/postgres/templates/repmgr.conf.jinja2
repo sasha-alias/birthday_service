@@ -1,7 +1,8 @@
 failover=automatic
+pg_bindir='/usr/lib/postgresql/11/bin'
 node_id={{ repmgr_node_idx }}
 node_name={{ inventory_hostname }}
 data_directory='/var/lib/postgresql/11/main'
 conninfo='host={{ inventory_hostname }} user=repmgr dbname=repmgr connect_timeout=2'
-promote_command='/usr/local/bin/promote_command.sh'
+promote_command='/usr/bin/promote_command.sh'
 follow_command='/usr/bin/repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'

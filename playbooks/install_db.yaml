@@ -3,7 +3,7 @@
   become: yes
   roles:
       - role: postgres
-      
+
       - role: postgres/initialised
 
       - role: postgres/primary
@@ -12,3 +12,6 @@
       - role: postgres/replica
         when: inventory_hostname != primary_node
 
+      - role: postgres/final
+
+      - role: consul

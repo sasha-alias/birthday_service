@@ -1,0 +1,6 @@
+
+- name: restart repmgrd
+  service:
+      name: repmgrd
+      state: restarted
+

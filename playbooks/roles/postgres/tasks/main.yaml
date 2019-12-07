@@ -9,16 +9,16 @@
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     state: present
 
-- name: Install PGDG apt repositories
+- name: install PGDG apt repositories
   apt_repository:
     repo: deb https://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main
     state: present
     update_cache: no
 
-- name: Update apt cache
+- name: update apt cache
   apt: update_cache=yes
 
-- name: Install required packages
+- name: install required packages
   apt:
       name:
         - postgresql-11
@@ -55,6 +55,11 @@
       src: repmgr.conf.jinja2
       dest: /etc/repmgr.conf
 
+- name: write defaut repmgrd
+  template:
+      src: repmgrd.jinja2
+      dest: /etc/default/repmgrd
+
 - name: write consul service file
   template:
       src: postgres_consul.json.jinja2
@@ -63,7 +68,7 @@
 - name: write promote_command.sh
   template:
       src: promote_command.sh.jinja2
-      dest: /usr/local/bin/promote_command.sh
+      dest: /usr/bin/promote_command.sh
       mode: "u+x"
       owner: postgres
       group: postgres

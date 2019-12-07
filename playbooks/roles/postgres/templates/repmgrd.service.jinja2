@@ -1,0 +1,17 @@
+[Unit]
+Description=Postgres replication manager
+After=postgresql-monitor.service
+Wants=postgresql-monitor.service
+
+[Service]
+Type=simple
+User=postgres
+Group=postgres
+StandardOutput=syslog
+ExecStart=/usr/lib/postgresql/11/bin/repmgrd -f /etc/repmgr.conf --verbose --daemonize=false
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
