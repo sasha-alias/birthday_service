@@ -10,6 +10,12 @@ all:
             ansible_host: 192.168.111.12
             ansible_user: vagrant
             ansible_ssh_private_key_file: ssh/id_rsa
+        node-backend:
+            ansible_host: 192.168.111.18
+            ansible_user: vagrant
+            ansible_ssh_private_key_file: ssh/id_rsa
+    vars:
+        consul_servers:  '["nodeA", "nodeB"]'
 
     children:
         db_nodes:
@@ -22,9 +28,14 @@ all:
                     repmgr_node_idx: 2
         consul_nodes:
             vars:
-                consul_servers:  '["nodeA", "nodeB"]'
+                consul_role: server
             hosts:
                 nodeA:
                     consul_bootstrap: "true"
                 nodeB:
                     consul_bootstrap: "false"
+        backend_nodes:
+            vars:
+                consul_role: agent
+            hosts:
+                node-backend:

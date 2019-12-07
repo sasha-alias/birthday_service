@@ -1,0 +1,45 @@
+
+- name: set hostname
+  hostname:
+      name: "{{ inventory_hostname }}"
+
+- name: write /etc/hosts
+  template:
+      src: hosts.jinja2
+      dest: /etc/hosts
+
+- name: write /etc/systemd/network/dummy0.netdev
+  template:
+      src: dummy0.netdev.jinja2
+      dest: /etc/systemd/network/dummy0.netdev
+
+- name: write /etc/systemd/network/dummy0.network
+  template:
+      src: dummy0.network.jinja2
+      dest: /etc/systemd/network/dummy0.network
+
+- name: restart systemd-networkd
+  systemd:
+      name: systemd-networkd
+      state: restarted
+
+- name: update apt cache
+  apt: update_cache=yes
+
+- name: install required packages
+  apt:
+      name:
+          - docker
+          - dnsmasq
+      state: present
+      update_cache: yes
+
+- name: write /etc/dnsmasq.d/consul.conf
+  template:
+      src: dnsmasq.consul.conf.jinja2
+      dest: /etc/dnsmasq.d/consul.conf
+
+- name: restart dnsmasq
+  service:
+      name: dnsmasq
+      state: restarted

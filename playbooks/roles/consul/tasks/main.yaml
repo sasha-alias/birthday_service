@@ -53,13 +53,20 @@
   template:
       src: server.conf.jinja2
       dest: /etc/consul/config.json
+  when: consul_role == 'server'
+
+- name: ensure agent config
+  template:
+      src: agent.conf.jinja2
+      dest: /etc/consul/config.json
+  when: consul_role == 'agent'
 
 - name: systemd service config
   template:
       src: consul.service.jinja2
       dest: /etc/systemd/system/consul.service
 
-- name: start consul
+- name: restart consul
   service:
       name: consul
       state: restarted

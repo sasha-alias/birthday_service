@@ -1,0 +1,15 @@
+{
+    "server": false,
+    "log_level": "DEBUG",
+    "enable_syslog": true,
+    "datacenter": "dc1",
+    "client_addr": "169.254.1.1",
+    "bind_addr": "{{ ansible_host }}",
+    "advertise_addr": "{{ ansible_host }}",
+    "node_name": "{{ inventory_hostname }}",
+    "acl_datacenter": "dc1",
+    "acl_default_policy": "allow",
+    "retry_join": {{ consul_servers }},
+    "start_join": {{ consul_servers }},
+    "rejoin_after_leave": true
+}

@@ -1,5 +1,6 @@
 
-- hosts: consul_nodes
+- hosts: backend_nodes
   become: yes
   roles:
+      - role: backend
       - role: consul
