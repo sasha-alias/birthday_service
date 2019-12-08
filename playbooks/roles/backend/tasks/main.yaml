@@ -29,8 +29,10 @@
 - name: install required packages
   apt:
       name:
-          - docker
+          - docker.io
           - dnsmasq
+          - python-docker
+          - python3-docker
       state: present
       update_cache: yes
 
@@ -39,7 +41,13 @@
       src: dnsmasq.consul.conf.jinja2
       dest: /etc/dnsmasq.d/consul.conf
 
+- name: start docker
+  systemd:
+      name: docker
+      state: started
+
 - name: restart dnsmasq
   service:
       name: dnsmasq
       state: restarted
+

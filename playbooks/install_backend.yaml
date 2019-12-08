@@ -4,3 +4,4 @@
   roles:
       - role: backend
       - role: consul
+      - role: birthday_service

@@ -22,3 +22,7 @@
       path: /etc/postgres_initialised
       state: touch
   when: not postgres_initialised
+
+- name: register in consul as primary
+  command: curl --request PUT --data @/etc/postgres_consul.json localhost:8500/v1/catalog/register
+  when: not postgres_initialised

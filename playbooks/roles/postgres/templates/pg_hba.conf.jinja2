@@ -13,3 +13,7 @@ host    replication     all             ::1/128                 md5
 host    all             repmgr             {{ hostvars[h].ansible_host }}/32       trust
 host    replication     repmgr             {{ hostvars[h].ansible_host }}/32       trust
 {% endfor %}
+
+{% for h in groups['backend_nodes'] %}
+host    all             postgres           {{ hostvars[h].ansible_host }}/32       trust
+{% endfor %}

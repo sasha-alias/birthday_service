@@ -1,0 +1,29 @@
+
+- name: deploy db schema
+  command: >
+    docker run \
+        --rm \
+        --name birthday_db \
+        --dns 169.254.1.1 \
+        -e PGHOST=postgres-primary.node.consul \
+        -e PGUSER=postgres
+        -e CONSUL_HTTP_ADDR=169.254.1.1:8500 \
+        -e CONSUL_RPC_ADDR=169.254.1.1:8400 \
+        olsender/birthday_service_db:latest \
+        psql postgres://postgres-primary.node.consul -f initdb/init.sql
+
+- name: start backend container
+  docker_container:
+      name: birthday_backend
+      dns_servers:
+          - 169.254.1.1
+      env:
+          PGHOST: postgres-primary.node.consul
+          PGUSER: postgres
+          CONSUL_HTTP_ADDR: 169.254.1.1:8500
+          CONSUL_RPC_ADDR: 169.254.1.1:8400
+
+      published_ports: 3000:3000
+      image: olsender/birthday_service_backend:latest
+      state: started
+

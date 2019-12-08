@@ -45,3 +45,9 @@ Install postgresql cluster:
 ```
 ansible-playbook -i infra/dev/inventory.yaml playbooks/install_db.yaml
 ```
+
+Install birthday service app
+
+```
+ansible-playbook -i infra/dev/inventory.yaml playbooks/install_backend.yaml
+```
