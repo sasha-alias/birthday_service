@@ -1,0 +1,46 @@
+
+all:
+
+    hosts:
+        nodeA:
+            ansible_host: 35.158.178.71
+            ansible_user: ubuntu
+            ansible_ssh_private_key_file: ssh/id_rsa
+        nodeB:
+            ansible_host: 54.93.177.15
+            ansible_user: ubuntu
+            ansible_ssh_private_key_file: ssh/id_rsa
+        node-backend-1:
+            ansible_host: 18.195.49.109
+            ansible_user: ubuntu
+            ansible_ssh_private_key_file: ssh/id_rsa
+        node-backend-2:
+            ansible_host: 52.57.141.128
+            ansible_user: ubuntu
+            ansible_ssh_private_key_file: ssh/id_rsa
+
+    vars:
+        consul_servers:  '["nodeA", "nodeB"]'
+
+    children:
+        db_nodes:
+            vars:
+                primary_node: nodeA
+                consul_role: server
+            hosts:
+                nodeA:
+                    repmgr_node_idx: 1
+                    consul_bootstrap: "true"
+                    private_ip: 192.168.2.37
+                nodeB:
+                    repmgr_node_idx: 2
+                    consul_bootstrap: "false"
+                    private_ip: 192.168.2.52
+        backend_nodes:
+            vars:
+                consul_role: agent
+            hosts:
+                node-backend-1:
+                    private_ip: 192.168.2.5
+                node-backend-2:
+                    private_ip: 192.168.2.21

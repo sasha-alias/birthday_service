@@ -1,0 +1,30 @@
+
+all:
+    hosts:
+    vars:
+        ec2_image: ami-0cc0a36f626a4fdf5
+        region: eu-central-1
+        vpc_cidr: 192.168.2.0/24
+        backend_nodes:
+
+            - name: backend_1
+              az: eu-central-1a
+              cidr: 192.168.2.0/28
+              ip:  192.168.2.5
+
+            - name: backend_2
+              az: eu-central-1b
+              cidr: 192.168.2.16/28
+              ip:  192.168.2.21
+
+        db_nodes:
+            - name: dbnode-1
+              az: eu-central-1a
+              cidr: 192.168.2.32/28
+              ip:  192.168.2.37
+
+            - name: dbnode-2
+              az: eu-central-1b
+              cidr: 192.168.2.48/28
+              ip:  192.168.2.52
+

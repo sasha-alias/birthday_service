@@ -1,0 +1,242 @@
+
+- name: create VPC
+  ec2_vpc_net:
+    name: birthday_service_vpc
+    cidr_block: "{{ vpc_cidr}}"
+    region: "{{ region }}"
+    state: present
+    profile: "{{ AWS_PROFILE }}"
+  register: vpc
+
+- name: ensure internet gateway for VPC
+  ec2_vpc_igw:
+    region: "{{ region }}"
+    vpc_id: "{{ vpc.vpc.id }}"
+    state: present
+    profile: "{{ AWS_PROFILE }}"
+
+- name: ensure ssh_key
+  ec2_key:
+      name: birthday_service_key
+      state: present
+      key_material: "{{ lookup('file', '../ssh/id_rsa.pub') }}"
+
+- name: create security group for load balancer
+  ec2_group:
+    name: birthday_service_lb
+    description: "security group for birthday_service load_balancer"
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    rules:
+      - proto: tcp
+        ports:
+          - 80
+          - 443
+        cidr_ip: 0.0.0.0/0
+    profile: "{{ AWS_PROFILE }}"
+  register: lb_secgroup_info
+
+- name: create security group for backend instances
+  ec2_group:
+    name: birthday_service_backend_sg
+    description: "security group for birthday_service backend instances"
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    rules:
+        - proto: tcp
+          from_port: 3000
+          to_port: 3000
+          group_id: "{{ lb_secgroup_info.group_id }}"
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 0
+          to_port: 9000
+          cidr_ip: "{{ vpc_cidr }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: backend_secgroup_info
+
+- name: create security group for database instances
+  ec2_group:
+    name: birthday_service_database_sg
+    description: "security group for birthday_service databse instances"
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    rules:
+        - proto: tcp
+          from_port: 5432
+          to_port: 5432
+          cidr_ip: "{{ vpc_cidr }}"
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 0
+          to_port: 9000
+          cidr_ip: "{{ vpc_cidr }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: database_secgroup_info
+
+- name: create backend subnets
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ item.az }}"
+    state: present
+    cidr: "{{ item.cidr }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: backend_subnets
+  with_items: "{{ backend_nodes }}"
+
+- name: create db subnets
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ item.az }}"
+    state: present
+    cidr: "{{ item.cidr }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: db_subnets
+  with_items: "{{ db_nodes }}"
+
+- name: gather internet gateways facts
+  ec2_vpc_igw_info:
+    region: "{{ region }}"
+    filters:
+      "attachment.vpc-id": "{{ vpc.vpc.id}}"
+    profile: "{{ AWS_PROFILE }}"
+  register: igw_facts
+
+- name: attach internet gateway to backend subnets
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    subnets:
+      - "{{ item.subnet.id }}"
+    routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw_facts.internet_gateways[0].internet_gateway_id }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: public_route_table
+  with_items: "{{ backend_subnets.results }}"
+
+- name: attach internet gateway to db subnets
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    subnets:
+      - "{{ item.subnet.id }}"
+    routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw_facts.internet_gateways[0].internet_gateway_id }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: public_route_table
+  with_items: "{{ db_subnets.results }}"
+
+- name: backend instances
+  ec2:
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ item.subnet.id }}"
+    state: present
+    key_name: birthday_service_key
+    instance_type: t2.micro
+    private_ip: "{{ item.item.ip }}"
+    image: "{{ ec2_image }}"
+    group_id: "{{ backend_secgroup_info.group_id }}"
+    count: 1
+    assign_public_ip: yes
+    wait: yes
+    profile: "{{ AWS_PROFILE }}"
+    instance_tags:
+        Name: "{{ item.item.name }}"
+  register: backend_instances
+  with_items: "{{ backend_subnets.results }}"
+  failed_when: >
+    'failed' in backend_instances and backend_instances.failed and "InvalidIPAddress.InUse" not in backend_instances.msg
+
+- name: db instances
+  ec2:
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ item.subnet.id }}"
+    state: present
+    key_name: birthday_service_key
+    private_ip: "{{ item.item.ip }}"
+    instance_type: t2.micro
+    image: "{{ ec2_image }}"
+    group_id: "{{ database_secgroup_info.group_id }}"
+    count: 1
+    assign_public_ip: yes
+    wait: yes
+    profile: "{{ AWS_PROFILE }}"
+    instance_tags:
+        Name: "{{ item.item.name }}"
+  register: db_instances
+  with_items: "{{ db_subnets.results }}"
+  failed_when: >
+    'failed' in  db_instances and db_instances.failed and "InvalidIPAddress.InUse" not in db_instances.msg
+
+- name: get backend ids by ips
+  ec2_instance_facts:
+    region: "{{ region }}"
+    filters:
+      private-ip-address: "{{ item.ip }}"
+    profile: "{{ AWS_PROFILE }}"
+  register: node_facts
+  with_items: "{{ backend_nodes }}"
+
+- name: make a targets list
+  set_fact:
+    backend_targets: "{{ backend_targets | default([]) + [{'Id': item.instances[0].instance_id, 'Port': 3000}] }}"
+  with_items: "{{ node_facts.results }}"
+
+- name: make a target group
+  elb_target_group:
+    name: birthday-service
+    protocol: http
+    port: 3000
+    region: "{{ region }}"
+    vpc_id: "{{ vpc.vpc.id }}"
+    targets: "{{ backend_targets }}"
+    state: present
+    stickiness_enabled: yes
+    stickiness_lb_cookie_duration: 86400
+    health_check_interval: 10
+    health_check_path: "/hello?name=test"
+    health_check_port: 3000
+    health_check_protocol: "http"
+    health_check_timeout: 5
+    successful_response_codes: "200-404"
+    unhealthy_threshold_count: 2
+    healthy_threshold_count: 2
+    profile: "{{ AWS_PROFILE }}"
+  register: backend_target_group
+
+- name: make list if subnet ids
+  set_fact:
+    subnet_ids: "{{ backend_subnets | json_query('results[*].subnet.id') | unique }}"
+
+- name: load balancer
+  elb_application_lb:
+    name: birthday-service
+    region: "{{ region }}"
+    state: present
+    security_groups: "{{ [lb_secgroup_info.group_id] }}"
+    subnets: "{{ subnet_ids }}"
+    listeners:
+        #- Protocol: HTTPS
+        #  Port: 443
+        #  SslPolicy: ELBSecurityPolicy-2015-05
+        #  Certificates:
+        #    - CertificateArn: "{{ ssl_certificate_id }}"
+        #  DefaultActions:
+        #    - Type: forward
+        #      TargetGroupName: birthday-service
+      - Protocol: HTTP
+        Port: 80
+        DefaultActions:
+          - Type: forward
+            TargetGroupName: birthday-service
+    profile: "{{ AWS_PROFILE }}"
