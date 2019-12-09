@@ -2,6 +2,7 @@
 - hosts: backend_nodes
   become: yes
   roles:
+      - role: hosts
       - role: backend
       - role: consul
       - role: birthday_service

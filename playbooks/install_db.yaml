@@ -2,6 +2,8 @@
 - hosts: db_nodes
   become: yes
   roles:
+      - role: hosts
+
       - role: consul
 
       - role: postgres

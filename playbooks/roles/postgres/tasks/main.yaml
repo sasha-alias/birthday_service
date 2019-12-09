@@ -1,8 +1,4 @@
 
-- name: set hostname
-  hostname:
-      name: "{{ inventory_hostname }}"
-
 - name: install PGDG apt repository signing key
   apt_key:
     id: ACCC4CF8
@@ -29,11 +25,6 @@
         - python3-psycopg2
       state: present
       update_cache: yes
-
-- name: write /etc/hosts
-  template:
-      src: hosts.jinja2
-      dest: /etc/hosts
 
 - name: write pg_hba.conf
   template:

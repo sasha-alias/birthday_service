@@ -1,3 +1,6 @@
 postgresql_conf_listen_addresses: "'*'"
 postgresql_conf_synchronous_commit: "remote_write"
 postgresql_conf_shared_preload_libraries: "repmgr"
+repmgr_monitor_interval_secs: 2
+repmgr_reconnect_attempts: 5
+repmgr_connect_timeout: 2

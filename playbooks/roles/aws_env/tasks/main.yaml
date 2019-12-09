@@ -204,12 +204,12 @@
     stickiness_enabled: yes
     stickiness_lb_cookie_duration: 86400
     health_check_interval: 10
-    health_check_path: "/hello?name=test"
+    health_check_path: "/"
     health_check_port: 3000
     health_check_protocol: "http"
     health_check_timeout: 5
-    successful_response_codes: "200-404"
-    unhealthy_threshold_count: 2
+    successful_response_codes: 200
+    unhealthy_threshold_count: 10
     healthy_threshold_count: 2
     profile: "{{ AWS_PROFILE }}"
   register: backend_target_group

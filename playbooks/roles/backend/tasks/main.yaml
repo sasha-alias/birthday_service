@@ -1,13 +1,4 @@
 
-- name: set hostname
-  hostname:
-      name: "{{ inventory_hostname }}"
-
-- name: write /etc/hosts
-  template:
-      src: hosts.jinja2
-      dest: /etc/hosts
-
 - name: write /etc/systemd/network/dummy0.netdev
   template:
       src: dummy0.netdev.jinja2

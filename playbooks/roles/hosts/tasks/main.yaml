@@ -1,0 +1,10 @@
+
+- name: set hostname
+  hostname:
+      name: "{{ inventory_hostname }}"
+
+- name: write /etc/hosts
+  template:
+      src: hosts.jinja2
+      dest: /etc/hosts
+

@@ -10,10 +10,10 @@ host    replication     all             127.0.0.1/32            md5
 host    replication     all             ::1/128                 md5
 
 {% for h in groups['db_nodes'] %}
-host    all             repmgr             {{ hostvars[h].get('private_ip', ansible_host) }}/32       trust
-host    replication     repmgr             {{ hostvars[h].get('private_ip', ansible_host) }}/32       trust
+host    all             repmgr             {{ hostvars[h].get('private_ip', hostvars[h].ansible_host) }}/32       trust
+host    replication     repmgr             {{ hostvars[h].get('private_ip', hostvars[h].ansible_host) }}/32       trust
 {% endfor %}
 
 {% for h in groups['backend_nodes'] %}
-host    all             postgres           {{ hostvars[h].get('private_ip', ansible_host) }}/32       trust
+host    all             postgres           {{ hostvars[h].get('private_ip', hostvars[h].ansible_host) }}/32       trust
 {% endfor %}

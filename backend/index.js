@@ -7,6 +7,9 @@ const port = process.env.BIRTHDAY_PORT || 3000;
 app.use(express.json())
 app.put('/hello/:account_name', api.save_birthday);
 app.get('/hello', api.get_days_till_birthday);
+app.get('/', function(req, res){
+    res.status(200).json()
+});
 
 app.listen(port, () => console.log(`app listening on port ${port}!`));
 

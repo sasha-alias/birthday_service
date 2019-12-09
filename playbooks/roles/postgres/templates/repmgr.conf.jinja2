@@ -3,6 +3,8 @@ pg_bindir='/usr/lib/postgresql/11/bin'
 node_id={{ repmgr_node_idx }}
 node_name={{ inventory_hostname }}
 data_directory='/var/lib/postgresql/11/main'
-conninfo='host={{ inventory_hostname }} user=repmgr dbname=repmgr connect_timeout=2'
+conninfo='host={{ inventory_hostname }} user=repmgr dbname=repmgr connect_timeout={{ repmgr_connect_timeout }}'
+monitor_interval_secs={{ repmgr_monitor_interval_secs }}
+reconnect_attempts={{ repmgr_reconnect_attempts }}
 promote_command='/usr/bin/promote_command.sh'
 follow_command='/usr/bin/repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
